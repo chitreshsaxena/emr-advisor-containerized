@@ -37,20 +37,27 @@ sudo usermod -aG docker ec2-user
 **Note**: After adding the user to the `docker` group, log out and log back in for the changes to take effect.
 
 ---
-
-### Step 2: Set Up AWS Permissions to Access S3 Bucket
-
-Use an IAM Role: If your EC2 instance has an IAM role attached, ensure the role has sufficient permissions to access the S3 bucket containing the logs. Refer [AWS documentation](https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/iam-roles-for-amazon-ec2.html) for more details.
-
-
----
-
-### Step 3: Clone the Repository
+### Step 2: Clone the Repository
 
 Clone this repository to your working directory on the EC2 instance:
 ```bash
 git clone https://github.com/chitreshsaxena/emr-advisor-containerized.git
 cd emr-advisor-containerized
+```
+
+---
+
+### Step 3: Set Up AWS Permissions to Access S3 Bucket
+
+Use an IAM Role: If your EC2 instance has an IAM role attached, ensure the role has sufficient permissions to access the S3 bucket containing the logs. Refer [AWS documentation](https://docs.aws.amazon.com/prescriptive-guidance/latest/patterns/allow-ec2-instances-write-access-to-s3-buckets-in-ams-accounts.html) for more details.
+
+Optional - Use the script to setup of an IAM role with S3 read/write access for an EC2 instance.
+
+Run the script, passing the EC2 instance ID and S3 bucket name as parameters:
+```bash
+chmod +x setup-s3-access-role.sh
+./setup-s3-access-role.sh <INSTANCE_ID> <S3_BUCKET_NAME>
+
 ```
 
 ---
