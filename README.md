@@ -38,12 +38,9 @@ sudo usermod -aG docker ec2-user
 
 ---
 
-### Step 2: Set Up AWS Credentials
+### Step 2: Set Up AWS Permissions to Access S3 Bucket
 
-Transfer your AWS credentials to the EC2 instance. For example:
-```bash
-scp -i emr-advisor.pem -r ~/.aws ec2-user@your-ec2-ip:/home/ec2-user/
-```
+Use an IAM Role: If your EC2 instance has an IAM role attached, ensure the role has sufficient permissions to access the S3 bucket containing the logs
 
 ---
 
