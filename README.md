@@ -68,14 +68,19 @@ sudo docker build -t emr-advisor .
 Run the container to analyze EMR logs:
 ```bash
 docker run --rm \
-  -v $HOME/.aws:/root/.aws \
-  -e BUCKET_NAME=emr-advisor-1234567890 \
-  -e LOG_PATH=logs/ \
+  -e BUCKET_NAME=your-existing-bucket-name \
+  -e LOG_PATH=path/to/logs/ \
   emr-advisor
+
 ```
 
+Parameters:
+- BUCKET_NAME: The name of your existing S3 bucket where logs are stored and where the output will be saved.
+- LOG_PATH: The path within your S3 bucket where the log files are located.
+
+
 - Replace `BUCKET_NAME` with the name of your S3 bucket containing the logs.
-- Replace `LOG_PATH` with the path to the logs in the bucket.
+- Replace `LOG_PATH` with the path to the logs in the bucket. E.g. emr-logs/cluster-j-123456ABCDEF
 
 ---
 
