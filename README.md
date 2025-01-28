@@ -22,9 +22,25 @@ This containerized approach simplifies the process by packaging all necessary de
 
 ---
 
-## Installation and Setup
 
-### Step 1: Install Docker on EC2
+
+### Step 1: Set Up AWS Permissions to Access S3 Bucket
+
+Use an IAM Role: If your EC2 instance has an IAM role attached, ensure the role has sufficient permissions to access the S3 bucket containing the logs. Refer [AWS documentation](https://docs.aws.amazon.com/prescriptive-guidance/latest/patterns/allow-ec2-instances-write-access-to-s3-buckets-in-ams-accounts.html) for more details.
+
+Optional - In your AWS CloudShell, run the shell script to setup an IAM role with S3 read/write access for an EC2 instance, passing the EC2 instance ID and S3 bucket name as parameters:
+```bash
+git clone https://github.com/chitreshsaxena/emr-advisor-containerized.git
+cd emr-advisor-containerized
+chmod +x setup-s3-access-role.sh
+./setup-s3-access-role.sh <INSTANCE_ID> <S3_BUCKET_NAME>
+
+```
+---
+
+## Installation and Setup on EC2
+
+### Step 2: Install Docker on EC2
 
 Run the following commands on your EC2 instance:
 ```bash
@@ -37,27 +53,13 @@ sudo usermod -aG docker ec2-user
 **Note**: After adding the user to the `docker` group, log out and log back in for the changes to take effect.
 
 ---
-### Step 2: Clone the Repository
+### Step 3: Clone the Repository
 
 Clone this repository to your working directory on the EC2 instance:
 ```bash
+sudo yum install git -y
 git clone https://github.com/chitreshsaxena/emr-advisor-containerized.git
 cd emr-advisor-containerized
-```
-
----
-
-### Step 3: Set Up AWS Permissions to Access S3 Bucket
-
-Use an IAM Role: If your EC2 instance has an IAM role attached, ensure the role has sufficient permissions to access the S3 bucket containing the logs. Refer [AWS documentation](https://docs.aws.amazon.com/prescriptive-guidance/latest/patterns/allow-ec2-instances-write-access-to-s3-buckets-in-ams-accounts.html) for more details.
-
-Optional - Use the script to setup of an IAM role with S3 read/write access for an EC2 instance.
-
-Run the script, passing the EC2 instance ID and S3 bucket name as parameters:
-```bash
-chmod +x setup-s3-access-role.sh
-./setup-s3-access-role.sh <INSTANCE_ID> <S3_BUCKET_NAME>
-
 ```
 
 ---
