@@ -18,7 +18,7 @@ This containerized approach simplifies the process by packaging all necessary de
 ## Requirements
 
 - **EC2 Instance**: Recommended instance type with at least 25 GB disk space.
-- **AWS CLI Credentials**: Ensure the instance has access to the required S3 bucket and log files.
+- **Access to S3**: The instance must have read and write access to the S3 bucket and the log files within it. (Refer step 2 below)
 
 ---
 
@@ -40,7 +40,8 @@ sudo usermod -aG docker ec2-user
 
 ### Step 2: Set Up AWS Permissions to Access S3 Bucket
 
-Use an IAM Role: If your EC2 instance has an IAM role attached, ensure the role has sufficient permissions to access the S3 bucket containing the logs
+Use an IAM Role: If your EC2 instance has an IAM role attached, ensure the role has sufficient permissions to access the S3 bucket containing the logs. Refer [AWS documentation](https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/iam-roles-for-amazon-ec2.html) for more details.
+
 
 ---
 
