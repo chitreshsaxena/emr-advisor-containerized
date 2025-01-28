@@ -3,17 +3,15 @@
 
 ## Overview
 
-This repository provides a containerized solution for the [AWS EMR Advisor](https://github.com/aws-samples/aws-emr-advisor/tree/main), a tool designed to analyze and optimize Amazon EMR logs. By containerizing the existing EMR Advisor code, this solution simplifies the setup process, making it portable and easier to deploy in any environment that supports Docker.
+This repository provides a containerized solution for the [AWS EMR Advisor](https://github.com/aws-samples/aws-emr-advisor/tree/main), an existing tool designed to analyze Amazon EMR logs, providing users with insights and recommendations to enable informed decision-making for cost optimization and improved efficiency.
 
 ---
 
 ## Why Containerize?
 
-The original AWS EMR Advisor code requires dependencies like Hadoop, Spark, and Scala, which can be challenging to configure in different environments. This containerized approach provides:
+The current solution, AWS EMR Advisor, has prerequisites and dependencies such as SBT (Scala Build Tool with Java 17) and Apache Spark. Typically, it is designed to run on an EMR cluster, requiring users to manage and configure these dependencies in the cluster environment.
 
-- **Portability**: Run the solution on any platform with Docker support.
-- **Ease of Setup**: Avoid manual installation of complex dependencies.
-- **Consistency**: Eliminate issues caused by environment differences.
+This containerized approach simplifies the process by packaging all necessary dependencies into a self-contained Docker image, eliminating the need to set up or run an EMR cluster for log analysis. It provides an easy-to-use, portable solution that can be deployed on any platform that supports Docker. 
 
 ---
 
