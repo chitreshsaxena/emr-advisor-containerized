@@ -1,5 +1,13 @@
+## Clone Repository
+First, clone the repository containing the Dockerfile for Mac with an M-series chip:
+
+```sh
+git clone https://github.com/chitreshsaxena/emr-advisor-containerized.git
+cd emr-advisor-containerized/mac
+```
+
 ## Build Instructions (for Mac with Apple Silicon)
-Use the following command to build the Docker image on Mac with an M-series chip:
+Use the following command to build the Docker image:
 
 ```sh
 sudo docker build --platform=linux/arm64 -t emr-advisor .
