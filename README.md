@@ -105,8 +105,8 @@ aws s3 ls s3://emr-advisor-1234567890/emr_advisor_output/ --recursive
 
 ## Notes
 
+- For testing, you can use the sample log file available at: [Sample Log File](https://github.com/aws-samples/aws-emr-advisor/blob/main/src/test/resources/job_spark_pi). Upload it to your S3 bucket before running the container.
 - Ensure your EC2 instance has sufficient disk space (at least 25 GB recommended) for Docker and temporary files.
-- This containerized solution is built for environments where EMR logs are stored in S3 and need analysis without complex local setups.
 
 ---
 
