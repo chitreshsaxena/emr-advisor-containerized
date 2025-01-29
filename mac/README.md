@@ -1,11 +1,18 @@
-# EMR Advisor Docker Setup
-
 ## Build Instructions (for Mac with Apple Silicon)
 Use the following command to build the Docker image on Mac with an M-series chip:
 
 ```sh
 sudo docker build --platform=linux/arm64 -t emr-advisor .
 ```
+
+
+## AWS CLI Setup
+Please make sure you have **AWS CLI** set up on your Mac. You can verify the installation by running:
+
+```sh
+aws s3 ls
+```
+
 
 ## Run Instructions
 Once built, run the container using:
@@ -14,5 +21,4 @@ Once built, run the container using:
 sudo docker run --rm -it -v $HOME/.aws:/root/.aws -e BUCKET_NAME=your-bucket-name -e LOG_PATH=logs/ emr-advisor bash
 ```
 
-**Note:** Replace `your-bucket-name` with your actual S3 bucket name and ensure the log files are present under the `logs/` path in the S3 bucket.
-
+**Note:** Replace `your-bucket-name` with your actual S3 bucket name and ensure the log files are present under the `logs/` path.
