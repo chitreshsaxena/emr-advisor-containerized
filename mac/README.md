@@ -21,6 +21,13 @@ Please make sure you have **AWS CLI** set up on your Mac. You can verify the ins
 aws s3 ls
 ```
 
+## Sample Log File For Testing - Optional
+You can use the sample log file available at:
+
+[Sample Log File](https://github.com/aws-samples/aws-emr-advisor/blob/main/src/test/resources/job_spark_pi)
+
+Upload it to your S3 bucket under the `logs/` path before running the container.
+
 
 ## Run Instructions
 Once built, run the container using:
