@@ -18,7 +18,6 @@ RUN yum -y update && \
     yum clean all
 
 # Install AWS CLI
-#RUN curl "https://awscli.amazonaws.com/awscli-exe-linux-aarch64.zip" -o "awscliv2.zip" && \   #AMD 
 RUN curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip" && \
     unzip awscliv2.zip && \
     ./aws/install && \
@@ -62,11 +61,17 @@ RUN echo '#!/bin/bash' > /run_commands.sh && \
     echo '  echo "No logs found in s3://${BUCKET_NAME}/${LOG_PATH}"' >> /run_commands.sh && \
     echo '  exit 1' >> /run_commands.sh && \
     echo 'fi' >> /run_commands.sh && \
+    echo 'timestamp=$(date +%Y%m%d_%H%M%S)' >> /run_commands.sh && \
     echo 'for log_file in /tmp/logs/*; do' >> /run_commands.sh && \
     echo '  echo "Processing $log_file"' >> /run_commands.sh && \
-    echo '  spark-submit --deploy-mode client --class com.amazonaws.emr.SparkLogsAnalyzer /aws-emr-advisor/target/scala-2.12/aws-emr-advisor-assembly-0.3.0.jar $log_file' >> /run_commands.sh && \
+    echo '  filename=$(basename "$log_file")' >> /run_commands.sh && \
+    echo '  export EMR_ADVISOR_OUTPUT_FILE="/tmp/emr_advisor_${filename%.*}_${timestamp}.html"' >> /run_commands.sh && \
+    echo '  spark-submit --deploy-mode client \' >> /run_commands.sh && \
+    echo '    --conf "spark.emr.advisor.output.file=${EMR_ADVISOR_OUTPUT_FILE}" \' >> /run_commands.sh && \
+    echo '    --class com.amazonaws.emr.SparkLogsAnalyzer \' >> /run_commands.sh && \
+    echo '    /aws-emr-advisor/target/scala-2.12/aws-emr-advisor-assembly-0.3.0.jar $log_file' >> /run_commands.sh && \
     echo 'done' >> /run_commands.sh && \
-    echo 'for report in /tmp/*.html; do' >> /run_commands.sh && \
+    echo 'for report in /tmp/emr_advisor_*.html; do' >> /run_commands.sh && \
     echo '  if [ -f "$report" ]; then' >> /run_commands.sh && \
     echo '    aws s3 cp "$report" s3://${BUCKET_NAME}/emr_advisor_output/' >> /run_commands.sh && \
     echo '    echo "Report uploaded to s3://${BUCKET_NAME}/emr_advisor_output/$(basename $report)"' >> /run_commands.sh && \
