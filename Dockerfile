@@ -65,11 +65,9 @@ RUN echo '#!/bin/bash' > /run_commands.sh && \
     echo 'for log_file in /tmp/logs/*; do' >> /run_commands.sh && \
     echo '  echo "Processing $log_file"' >> /run_commands.sh && \
     echo '  filename=$(basename "$log_file")' >> /run_commands.sh && \
-    echo '  spark-submit --deploy-mode client \' >> /run_commands.sh && \
-    echo '    --class com.amazonaws.emr.SparkLogsAnalyzer \' >> /run_commands.sh && \
-    echo '    /aws-emr-advisor/target/scala-2.12/aws-emr-advisor-assembly-0.3.0.jar $log_file' >> /run_commands.sh && \
+    echo '  spark-submit --deploy-mode client --class com.amazonaws.emr.SparkLogsAnalyzer /aws-emr-advisor/target/scala-2.12/aws-emr-advisor-assembly-0.3.0.jar $log_file' >> /run_commands.sh && \
     echo 'done' >> /run_commands.sh && \
-    echo 'sleep 5' >> /run_commands.sh && \  # Add small delay to ensure files are written
+    echo 'sleep 5' >> /run_commands.sh && \
     echo 'for report in /tmp/emr-advisor.spark.*.html; do' >> /run_commands.sh && \
     echo '  if [ -f "$report" ]; then' >> /run_commands.sh && \
     echo '    newname="/tmp/emr_advisor_$(basename ${report%.*})_${timestamp}.html"' >> /run_commands.sh && \
@@ -78,6 +76,12 @@ RUN echo '#!/bin/bash' > /run_commands.sh && \
     echo '    echo "Report uploaded to s3://${BUCKET_NAME}/emr_advisor_output/$(basename $newname)"' >> /run_commands.sh && \
     echo '  fi' >> /run_commands.sh && \
     echo 'done' >> /run_commands.sh
+
+# Make the script executable
+RUN chmod +x /run_commands.sh
+
+# Set the entry point to the script
+ENTRYPOINT ["/bin/bash", "/run_commands.sh"]
 
 
 # Make the script executable
