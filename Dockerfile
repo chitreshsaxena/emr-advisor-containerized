@@ -7,7 +7,7 @@ ENV PATH=$JAVA_HOME/bin:$PATH
 
 # Set environment variables for Hadoop and Spark
 ENV HADOOP_VERSION=3.4.1
-ENV SPARK_VERSION=3.5.4
+ENV SPARK_VERSION=3.5.5
 ENV HADOOP_HOME=/opt/hadoop
 ENV SPARK_HOME=/opt/spark
 ENV PATH=$PATH:$HADOOP_HOME/bin:$SPARK_HOME/bin
