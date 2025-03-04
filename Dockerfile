@@ -82,10 +82,3 @@ RUN chmod +x /run_commands.sh
 
 # Set the entry point to the script
 ENTRYPOINT ["/bin/bash", "/run_commands.sh"]
-
-
-# Make the script executable
-RUN chmod +x /run_commands.sh
-
-# Set the entry point to the script
-ENTRYPOINT ["/bin/bash", "/run_commands.sh"]
