@@ -1,0 +1,46 @@
+# Base image
+FROM amazoncorretto:17
+
+# Install dependencies
+RUN yum -y update && \
+    yum -y install wget git unzip tar gzip procps && \
+    wget https://www.scala-sbt.org/sbt-rpm.repo -O /etc/yum.repos.d/sbt-rpm.repo && \
+    yum -y install sbt && \
+    yum clean all
+
+# Set environment variables
+ENV JAVA_HOME=/usr/lib/jvm/java-17-amazon-corretto.x86_64/
+ENV PATH=$JAVA_HOME/bin:$PATH
+ENV SPARK_VERSION=3.5.5
+ENV SPARK_HOME=/opt/spark
+ENV HADOOP_HOME=/opt/hadoop
+
+ENV JAVA_HOME=/usr/lib/jvm/java-17-amazon-corretto
+ENV PATH=$JAVA_HOME/bin:$PATH
+
+
+# Install Spark
+RUN wget https://dlcdn.apache.org/spark/spark-${SPARK_VERSION}/spark-${SPARK_VERSION}-bin-hadoop3.tgz && \
+    tar -xzf spark-${SPARK_VERSION}-bin-hadoop3.tgz && \
+    mv spark-${SPARK_VERSION}-bin-hadoop3 ${SPARK_HOME} && \
+    rm spark-${SPARK_VERSION}-bin-hadoop3.tgz
+
+# Build EMR Advisor
+WORKDIR /build
+RUN git clone https://github.com/aws-samples/aws-emr-advisor.git
+WORKDIR /build/aws-emr-advisor
+RUN sbt clean compile assembly
+
+# Copy built JAR to /app
+RUN mkdir -p /app && \
+    cp target/scala-2.12/aws-emr-advisor-assembly-0.3.0.jar /app/
+
+# Add Sparklens JAR (you must provide it locally)
+COPY app/sparklens-0.3.2-s_2.11.jar /app/
+
+# Copy the run script
+COPY run_commands.sh /run_commands.sh
+RUN chmod +x /run_commands.sh
+
+# Set default command
+CMD ["/run_commands.sh"]
