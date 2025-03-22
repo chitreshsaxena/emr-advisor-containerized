@@ -1,33 +1,18 @@
-# Use Amazon Corretto 17 as the base image
+# Use Amazon Corretto 17 as base
 FROM amazoncorretto:17
 
-# Set environment variables for Java
-ENV JAVA_HOME=/usr/lib/jvm/java-17-amazon-corretto
-ENV PATH=$JAVA_HOME/bin:$PATH
-
-# Set environment variables for Hadoop and Spark
-ENV HADOOP_VERSION=3.4.1
-ENV SPARK_VERSION=3.5.5
-ENV HADOOP_HOME=/opt/hadoop
-ENV SPARK_HOME=/opt/spark
-ENV PATH=$PATH:$HADOOP_HOME/bin:$SPARK_HOME/bin
-
-# Install necessary tools
+# Install dependencies and add sbt repo
 RUN yum -y update && \
-    yum -y install unzip wget tar gzip git procps && \
+    yum -y install wget unzip tar gzip git curl java-17-amazon-corretto-devel procps && \
+    curl -L -o /etc/yum.repos.d/sbt-rpm.repo https://www.scala-sbt.org/sbt-rpm.repo && \
+    yum -y install sbt && \
     yum clean all
 
-# Install AWS CLI
-RUN curl "https://awscli.amazonaws.com/awscli-exe-linux-aarch64.zip" -o "awscliv2.zip" && \
-    unzip awscliv2.zip && \
-    ./aws/install && \
-    rm -rf awscliv2.zip aws
-
-# Install Hadoop
-RUN wget https://dlcdn.apache.org/hadoop/common/hadoop-${HADOOP_VERSION}/hadoop-${HADOOP_VERSION}.tar.gz && \
-    tar -xzf hadoop-${HADOOP_VERSION}.tar.gz && \
-    mv hadoop-${HADOOP_VERSION} ${HADOOP_HOME} && \
-    rm hadoop-${HADOOP_VERSION}.tar.gz
+# Set environment variables
+ENV JAVA_HOME=/usr/lib/jvm/java-17-amazon-corretto
+ENV PATH="$JAVA_HOME/bin:$PATH"
+ENV SPARK_VERSION=3.5.5
+ENV SPARK_HOME=/opt/spark
 
 # Install Spark
 RUN wget https://dlcdn.apache.org/spark/spark-${SPARK_VERSION}/spark-${SPARK_VERSION}-bin-hadoop3.tgz && \
@@ -35,50 +20,37 @@ RUN wget https://dlcdn.apache.org/spark/spark-${SPARK_VERSION}/spark-${SPARK_VER
     mv spark-${SPARK_VERSION}-bin-hadoop3 ${SPARK_HOME} && \
     rm spark-${SPARK_VERSION}-bin-hadoop3.tgz
 
-# Install SBT
-RUN curl -L https://www.scala-sbt.org/sbt-rpm.repo -o /etc/yum.repos.d/sbt-rpm.repo && \
-    yum -y install sbt && \
-    yum clean all
+# Install AWS CLI
+RUN curl "https://awscli.amazonaws.com/awscli-exe-linux-aarch64.zip" -o "awscliv2.zip" && \
+    unzip awscliv2.zip && \
+    ./aws/install && \
+    rm -rf awscliv2.zip aws
 
-# Clone the repository and set the working directory
-RUN git clone https://github.com/aws-samples/aws-emr-advisor.git /aws-emr-advisor
-WORKDIR /aws-emr-advisor
+# Copy your local JARs if available
+COPY app/aws-emr-advisor-assembly-0.3.0.jar /app/
+COPY app/sparklens-0.3.2-s_2.11.jar /app/
 
-# Build the project
-RUN sbt clean compile assembly
+# Clone and build EMR Advisor project (optional if JAR is already present)
+WORKDIR /tmp
+RUN git clone https://github.com/aws-samples/aws-emr-advisor
 
-# Create a script to run the application
-RUN echo '#!/bin/bash' > /run_commands.sh && \
-    echo 'if [ -z "$BUCKET_NAME" ] || [ -z "$LOG_PATH" ]; then' >> /run_commands.sh && \
-    echo '  echo "Please provide both BUCKET_NAME and LOG_PATH"' >> /run_commands.sh && \
-    echo '  exit 1' >> /run_commands.sh && \
-    echo 'fi' >> /run_commands.sh && \
-    echo 'mkdir -p /tmp/logs' >> /run_commands.sh && \
-    echo 'aws s3 sync s3://${BUCKET_NAME}/${LOG_PATH} /tmp/logs/' >> /run_commands.sh && \
-    echo 'if [ "$(ls -A /tmp/logs)" ]; then' >> /run_commands.sh && \
-    echo '  echo "Logs downloaded successfully."' >> /run_commands.sh && \
-    echo 'else' >> /run_commands.sh && \
-    echo '  echo "No logs found in s3://${BUCKET_NAME}/${LOG_PATH}"' >> /run_commands.sh && \
-    echo '  exit 1' >> /run_commands.sh && \
-    echo 'fi' >> /run_commands.sh && \
-    echo 'timestamp=$(date +%Y%m%d_%H%M%S)' >> /run_commands.sh && \
-    echo 'for log_file in /tmp/logs/*; do' >> /run_commands.sh && \
-    echo '  echo "Processing $log_file"' >> /run_commands.sh && \
-    echo '  filename=$(basename "$log_file")' >> /run_commands.sh && \
-    echo '  spark-submit --deploy-mode client --class com.amazonaws.emr.SparkLogsAnalyzer /aws-emr-advisor/target/scala-2.12/aws-emr-advisor-assembly-0.3.0.jar $log_file' >> /run_commands.sh && \
-    echo 'done' >> /run_commands.sh && \
-    echo 'sleep 5' >> /run_commands.sh && \
-    echo 'for report in /tmp/emr-advisor.spark.*.html; do' >> /run_commands.sh && \
-    echo '  if [ -f "$report" ]; then' >> /run_commands.sh && \
-    echo '    newname="/tmp/emr_advisor_$(basename ${report%.*})_${timestamp}.html"' >> /run_commands.sh && \
-    echo '    mv "$report" "$newname"' >> /run_commands.sh && \
-    echo '    aws s3 cp "$newname" s3://${BUCKET_NAME}/emr_advisor_output/' >> /run_commands.sh && \
-    echo '    echo "Report uploaded to s3://${BUCKET_NAME}/emr_advisor_output/$(basename $newname)"' >> /run_commands.sh && \
-    echo '  fi' >> /run_commands.sh && \
-    echo 'done' >> /run_commands.sh
+# Bug fix: Copy the updated Scala file into the cloned repo
+COPY AppSparkExecutors.scala /tmp/aws-emr-advisor/src/main/scala/com/amazonaws/emr/spark/models/AppSparkExecutors.scala
+COPY AppEfficiencyAnalyzer.scala /tmp/aws-emr-advisor/src/main/scala/com/amazonaws/emr/spark/analyzer/
+COPY PageSummary.scala /tmp/aws-emr-advisor/src/main/scala/com/amazonaws/emr/report/spark/PageSummary.scala
+COPY EmrOnEc2Env.scala /tmp/aws-emr-advisor/src/main/scala/com/amazonaws/emr/spark/models/runtime/EmrOnEc2Env.scala
+COPY EmrOnEksEnv.scala /tmp/aws-emr-advisor/src/main/scala/com/amazonaws/emr/spark/models/runtime/EmrOnEksEnv.scala
+COPY EmrServerlessEnv.scala /tmp/aws-emr-advisor/src/main/scala/com/amazonaws/emr/spark/models/runtime/EmrServerlessEnv.scala
 
-# Make the script executable
+
+RUN cd /tmp/aws-emr-advisor && \
+    sbt clean compile assembly && \
+    cp ./target/scala-2.12/aws-emr-advisor-assembly-0.3.0.jar /app/
+
+# Copy execution script
+COPY run_commands.sh /run_commands.sh
 RUN chmod +x /run_commands.sh
 
-# Set the entry point to the script
-ENTRYPOINT ["/bin/bash", "/run_commands.sh"]
+# Set working directory and default command
+WORKDIR /app
+CMD ["/run_commands.sh"]
